@@ -5,11 +5,11 @@ const TodoForm = () => {
   const [desc, setDesc] = useState('');
   const [status, setStatus] = useState("inProgress");
   const [data, setData] = useState([]);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('https://192.168.1.97:8080/api/task');
+        const response = await fetch('http://localhost:8080/api/task/get');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -17,8 +17,8 @@ const TodoForm = () => {
         setData(result);
         console.log(result);
       } catch (error) {
-        console.error(error);
-      } 
+        console.error('Fetch error:', error);
+      }
     };
 
     fetchData();
@@ -26,15 +26,15 @@ const TodoForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const todo = {
       taskName: title,
-      taskDescription: desc,
-      taskStatus: status, // Include taskStatus in the request payload
+      taskDesc: desc,
+      status: status,
     };
-    
+
     try {
-      const response = await fetch('https://your-backend-api.com/todos', {
+      const response = await fetch('http://localhost:8080/api/task', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,14 +47,38 @@ const TodoForm = () => {
       }
 
       console.log('Todo added:', todo);
-      fetchData(); // Refetch data to update the list
+      setTitle('');
+      setDesc('');
+      setStatus('inProgress');
+      // Optionally refetch data or update state here
+      const updatedData = await fetch('http://localhost:8080/api/task/get').then(res => res.json());
+      setData(updatedData);
+
     } catch (error) {
-      console.error(error);
+      console.error('Post error:', error);
     }
-    
-    setDesc('');
-    setTitle('');
-    setStatus('inProgress');
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/task/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete todo');
+      }
+
+      console.log('Todo deleted:', id);
+      // Update the data state to reflect the deletion
+      setData(data.filter(todo => todo.taskId !== id));
+
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
   };
 
   return (
@@ -65,11 +89,11 @@ const TodoForm = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Title
             </label>
-            <input 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-              type="text" 
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              type="text"
               placeholder="Title"
             />
           </div>
@@ -77,11 +101,11 @@ const TodoForm = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Description
             </label>
-            <input 
-              value={desc} 
-              onChange={(e) => setDesc(e.target.value)} 
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-              type="text" 
+            <input
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              type="text"
               placeholder="Description"
             />
           </div>
@@ -89,12 +113,14 @@ const TodoForm = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Status
             </label>
-            <select 
-              value={status} 
-              onChange={(e) => setStatus(e.target.value)} 
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-              <option value="inProgress">In Progress</option>
-              <option value="isComplete">Complete</option>
+              <option value="PROGRESS">In Progress</option>
+              <option value="COMPLETE">Complete</option>
+              <option value="INCOMPLETE">InComplete</option>
+              
             </select>
           </div>
           <div className="flex items-center justify-between">
@@ -118,13 +144,17 @@ const TodoForm = () => {
           </thead>
           <tbody>
             {data.length > 0 ? data.map((todo) => (
-              <tr key={todo.id} className="text-start">
+              <tr key={todo.id}>
                 <td>{todo.taskName}</td>
-                <td>{todo.taskDescription}</td>
-                <td>{todo.taskStatus}</td>
+                <td>{todo.taskDesc}</td>
+                <td>{todo.status}</td>
                 <td className="flex justify-center gap-2">
-                  <button><img src="https://img.icons8.com/?size=100&id=12082&format=png&color=000000" className="w-6" alt="edit" /></button>
-                  <button><img src="https://img.icons8.com/?size=100&id=99933&format=png&color=000000 " className="w-5" alt="delete" /></button>
+                  <button>
+                    <img src="https://img.icons8.com/?size=100&id=12082&format=png&color=000000" className="w-6" alt="edit" />
+                  </button>
+                  <button onClick={() => handleDelete(todo.taskId)}>
+                    <img src="https://img.icons8.com/?size=100&id=99933&format=png&color=000000 " className="w-5" alt="delete" />
+                  </button>
                 </td>
               </tr>
             )) : (
