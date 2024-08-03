@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import TodoList from "./todo_list.jsx";
+import EditBtn from "./editBtn";
 
 const TodoForm = () => {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
-  const [status, setStatus] = useState("inProgress");
+  const [status, setStatus] = useState("PROGRESS");
   const [data, setData] = useState([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentTodo, setCurrentTodo] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -14,7 +18,8 @@ const TodoForm = () => {
           throw new Error('Network response was not ok');
         }
         const result = await response.json();
-        setData(result);
+        setData(result.sort((a, b) => a.taskId - b.taskId)); // Sort by taskId in ascending order
+     
         console.log(result);
       } catch (error) {
         console.error('Fetch error:', error);
@@ -49,10 +54,9 @@ const TodoForm = () => {
       console.log('Todo added:', todo);
       setTitle('');
       setDesc('');
-      setStatus('inProgress');
-      // Optionally refetch data or update state here
+      setStatus('PROGRESS');
       const updatedData = await fetch('http://localhost:8080/api/task/get').then(res => res.json());
-      setData(updatedData);
+      setData(updatedData.sort((a, b) => a.taskId - b.taskId)); // Sort by taskId
 
     } catch (error) {
       console.error('Post error:', error);
@@ -73,11 +77,30 @@ const TodoForm = () => {
       }
 
       console.log('Todo deleted:', id);
-      // Update the data state to reflect the deletion
       setData(data.filter(todo => todo.taskId !== id));
 
     } catch (error) {
       console.error('Delete error:', error);
+    }
+  };
+
+  const handleEditClick = (todo) => {
+    setCurrentTodo(todo);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setCurrentTodo(null);
+  };
+
+  const handleSaveDialog = async () => {
+    try {
+      const updatedData = await fetch('http://localhost:8080/api/task/get').then(res => res.json());
+      setData(updatedData.sort((a, b) => a.taskId - b.taskId));
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Fetch error:', error);
     }
   };
 
@@ -119,8 +142,7 @@ const TodoForm = () => {
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
               <option value="PROGRESS">In Progress</option>
               <option value="COMPLETE">Complete</option>
-              <option value="INCOMPLETE">InComplete</option>
-              
+              <option value="INCOMPLETE">Incomplete</option>
             </select>
           </div>
           <div className="flex items-center justify-between">
@@ -144,12 +166,12 @@ const TodoForm = () => {
           </thead>
           <tbody>
             {data.length > 0 ? data.map((todo) => (
-              <tr key={todo.id}>
+              <tr key={todo.taskId}>
                 <td>{todo.taskName}</td>
                 <td>{todo.taskDesc}</td>
                 <td>{todo.status}</td>
                 <td className="flex justify-center gap-2">
-                  <button>
+                  <button onClick={() => handleEditClick(todo)}>
                     <img src="https://img.icons8.com/?size=100&id=12082&format=png&color=000000" className="w-6" alt="edit" />
                   </button>
                   <button onClick={() => handleDelete(todo.taskId)}>
@@ -165,6 +187,14 @@ const TodoForm = () => {
           </tbody>
         </table>
       </div>
+      {isDialogOpen && currentTodo && (
+        <EditBtn
+          todo={currentTodo}
+          onClose={handleCloseDialog}
+          onSave={handleSaveDialog}
+        />
+      )}
+      <TodoList />
     </div>
   );
 };
