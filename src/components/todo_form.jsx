@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import TodoList from "./todo_list.jsx";
 import EditBtn from "./editBtn";
+import TodosForm from "./todos_form.jsx";
 
 const TodoForm = () => {
   const [title, setTitle] = useState('');
@@ -105,54 +106,8 @@ const TodoForm = () => {
   };
 
   return (
-    <div className="mx-8 flex flex-col gap-12">
-      <div className="w-full max-w-xs ml-[400px]">
-        <form onSubmit={handleSubmit} className="bg-[#f5f5f5] shadow-md rounded px-8 pt-6 pb-8 mb-4 ">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Title
-            </label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              type="text"
-              placeholder="Title"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Description
-            </label>
-            <input
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              type="text"
-              placeholder="Description"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Status
-            </label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-              <option value="PROGRESS">In Progress</option>
-              <option value="COMPLETE">Complete</option>
-              <option value="INCOMPLETE">Incomplete</option>
-            </select>
-          </div>
-          <div className="flex items-center justify-between">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-              Add
-            </button>
-          </div>
-        </form>
-      </div>
-
+    <div className="w-full">
+     
       <div className="flex flex-col">
         <h1 className="text-3xl font-semibold mb-3">Todo list</h1>
         <table className="table-fixed bg-slate-300 text-xl font-semibold rounded-lg p-2">
